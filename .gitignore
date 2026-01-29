@@ -6,6 +6,11 @@
 *.sln.docstates
 *.userprefs
 
+.github/
+.playwright-mcp/
+.vscode/
+
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
