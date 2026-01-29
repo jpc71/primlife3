@@ -1106,16 +1106,9 @@ void Environment::Paint(CDC* pDC, CRect& rect)
 	dcImage.SelectObject(pOldBitmap);
 
 	int height = m_topBm.bmHeight;
-	float scale =  (100.0f * 10.0f) / (float)(rect.Height() - (m_topBm.bmHeight + m_bottomBm.bmHeight));
-	float d = 0;
-	while(height < m_bottom)
-	{
-		CRect rect(0, height, rect.Width(), height + 20);
-//		TRACE("COLOR = %d at height %d\n", 100 - d, height);
-		pDC->FillSolidRect(rect, RGB(10, 10, 100 - (int) d));
-		height += 10;
-		d += scale;
-	}
+	// Use a solid dark blue background instead of gradient to avoid compositing artifacts
+	CRect waterRect(0, height, rect.Width(), m_bottom);
+	pDC->FillSolidRect(waterRect, RGB(10, 10, 50));  // Solid dark blue
 
 	pOldBitmap = dcImage.SelectObject(&m_bottomBitmap);
 	width = 0;

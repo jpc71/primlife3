@@ -41,6 +41,7 @@ protected:
 	CBreedView    m_breedView;
 	CToolBar      m_wndToolBar;
 	int           m_toolbarHeight;
+	BOOL          m_bGraphAvailable;  // Indicates if TeeChart graph was successfully created
 
 protected:
 	void  RestInPeace(CDC* pDc);

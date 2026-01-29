@@ -123,9 +123,11 @@ BOOL CPLifeApp::InitInstance()
 	}
 		
 
-	// Start up our registries
-	if (!m_comRegistry.CreateKey("Software\\Ultravast\\Primordial Life\\4", HKEY_LOCAL_MACHINE))
-		return FALSE;
+	// Start up our registries (HKEY_LOCAL_MACHINE is optional - only used for system-wide settings)
+	// Try to create HKEY_LOCAL_MACHINE key but don't fail if it can't (requires admin privileges)
+	// User-level settings will be stored in HKEY_CURRENT_USER
+	BOOL bMachineRegistry = m_comRegistry.CreateKey("Software\\Ultravast\\Primordial Life\\4", HKEY_LOCAL_MACHINE);
+	// Continue even if machine registry creation fails - it's optional for user permissions
 
 	SetRegistryKey(_T("Ultravast"));
 
