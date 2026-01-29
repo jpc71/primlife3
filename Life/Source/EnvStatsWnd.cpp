@@ -301,7 +301,8 @@ void CEnvStatsWnd::SetEnergySpread(bool bDraw)
 	CEnvStats& stats = list.GetTail();
 	m_graph.SetAutoInc(1);
 
-	for (int i = 0; i < CEnvStats::ENERGY_LEVELS; i++)
+	int i;
+	for (i = 0; i < CEnvStats::ENERGY_LEVELS; i++)
 		m_graph.SetGraphData((float) stats.m_energy[i]);
 
 	m_graph.SetAutoInc(1);
@@ -376,7 +377,8 @@ void CEnvStatsWnd::SetAgeSpread(bool bDraw)
 	CEnvStats& stats = list.GetTail();
 	m_graph.SetAutoInc(1);
 
-	for (int i = 0; i < (int) stats.m_ageIntervals; i++)
+	int i;
+	for (i = 0; i < (int) stats.m_ageIntervals; i++)
 		m_graph.SetGraphData((float) stats.m_ages[i]);
 
 	m_graph.SetAutoInc(1);

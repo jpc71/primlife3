@@ -130,7 +130,8 @@ void CMagnifyWnd::OnSize(UINT nType, int cx, int cy)
 	{
 		cy -= m_toolbarHeight;
 
-		if (m_graph.GetSafeHwnd() != NULL)
+		// Only resize graph if it was successfully created
+		if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
 			m_graph.MoveWindow(0, 0, cx, cy, FALSE);
 
 		if (m_breedView.GetSafeHwnd() != NULL)
@@ -186,12 +187,21 @@ BOOL CMagnifyWnd::CreateWnd(Environment* pEnv, CWnd* pParentWnd, CMagnifyWnd** p
 		
 	cRect.bottom -= pWnd->m_toolbarHeight;
 
+	// Attempt to create TeeChart graph, but don't fail if it can't be created
+	// TeeChart is a legacy 1990s ActiveX control that may not be registered on modern Windows
 	bSuccess = pWnd->m_graph.Create(NULL, NULL, WS_VISIBLE | WS_CHILD, cRect, pWnd, ID_GRAPH, NULL);
 	if (!bSuccess)
 	{
-		pWnd->DestroyWindow();
-		AfxMessageBox("Unable to display graph object.\nYou may need to re-install.");
-		return NULL;
+		// TeeChart creation failed, but we can continue without it
+		// Set flag to indicate graph is unavailable
+		pWnd->m_bGraphAvailable = FALSE;
+		
+		// Note: We don't destroy the window or show an error
+		// The breeding view will still work, just without the graph
+	}
+	else
+	{
+		pWnd->m_bGraphAvailable = TRUE;
 	}
 
 	pWnd->m_choice = AfxUserRegistry().GetValue("Magnify.choice", pWnd->m_choice);
@@ -348,7 +358,10 @@ void CMagnifyWnd::PaintNow(Biot* pBiot)
 	}
 	else
 	{
-		m_graph.ShowWindow(SW_HIDE);
+		// Only hide graph if it was successfully created
+		if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+			m_graph.ShowWindow(SW_HIDE);
+		
 		m_breedView.ShowWindow(SW_HIDE);
 
 		CDC* pDC = GetDC();
@@ -443,39 +456,51 @@ void CMagnifyWnd::OnComposition()
 {
 	m_choice = ID_COMPOSITION;
 
-	m_graph.SetDataReset(9);
-	m_graph.SetGraphType(2);
-	m_graph.SetGraphStyle(4);
-	m_graph.SetBackground(0);
+	// Only configure graph if it was successfully created
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+	{
+		m_graph.SetDataReset(9);
+		m_graph.SetGraphType(2);
+		m_graph.SetGraphStyle(4);
+		m_graph.SetBackground(0);
 
-	m_graph.SetNumPoints(5);
-	m_graph.SetNumSets(1);
+		m_graph.SetNumPoints(5);
+		m_graph.SetNumSets(1);
 
-	m_graph.SetAutoInc(1);
-	m_graph.SetColorData(10);	// Green
-	m_graph.SetColorData(9);	// Light Blue
-	m_graph.SetColorData(12);	// Light Red
-	m_graph.SetColorData(11);	// Light Cyan
-	m_graph.SetColorData(15); 	// White
+		m_graph.SetAutoInc(1);
+		m_graph.SetColorData(10);	// Green
+		m_graph.SetColorData(9);	// Light Blue
+		m_graph.SetColorData(12);	// Light Red
+		m_graph.SetColorData(11);	// Light Cyan
+		m_graph.SetColorData(15); 	// White
 
-	m_graph.SetAutoInc(1);
-	m_graph.SetLegendText("Chloroplasts");
-	m_graph.SetLegendText("Shields");
-	m_graph.SetLegendText("Teeth");
-	m_graph.SetLegendText("Eyes");
-	m_graph.SetLegendText("Injectors");
+		m_graph.SetAutoInc(1);
+		m_graph.SetLegendText("Chloroplasts");
+		m_graph.SetLegendText("Shields");
+		m_graph.SetLegendText("Teeth");
+		m_graph.SetLegendText("Eyes");
+		m_graph.SetLegendText("Injectors");
+	}
 
 	Biot* pBiot = m_pEnv->FindBiotByID(m_pEnv->m_selectedId);
 	SetTitle(pBiot, TRUE);
 	SetComposition(pBiot, TRUE);
 	m_breedView.ShowWindow(SW_HIDE);
-	m_graph.ShowWindow(SW_SHOWNORMAL);
+	
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+	{
+		m_graph.ShowWindow(SW_SHOWNORMAL);
+	}
 }
 
 
 void CMagnifyWnd::SetComposition(Biot* pBiot, BOOL bDraw)
 {
 	if (!pBiot)
+		return;
+
+	// Skip graph operations if graph is not available
+	if (!m_bGraphAvailable || m_graph.GetSafeHwnd() == NULL)
 		return;
 
 	int i;
@@ -517,7 +542,13 @@ void CMagnifyWnd::OnShape()
 {
 	m_choice = ID_SHAPE;
 	SetTitle(m_pEnv->FindBiotByID(m_pEnv->m_selectedId), TRUE);
-	m_graph.ShowWindow(SW_HIDE);
+	
+	// Only show/hide graph if it was successfully created
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+	{
+		m_graph.ShowWindow(SW_HIDE);
+	}
+	
 	m_breedView.ShowWindow(SW_HIDE);
 }
 
@@ -537,42 +568,38 @@ void CMagnifyWnd::OnEnergy()
 {
 	m_choice = ID_ENERGY;
 
-	m_graph.SetDataReset(9);
-	m_graph.SetGraphType(6);
-	m_graph.SetGraphStyle(4);
-	m_graph.SetBackground(0);
-	m_graph.SetPatternedLines(1);
-	m_graph.SetPatternData(6);
-	m_graph.SetRandomData(0);
-	m_graph.SetLabels(3); // Labels on Y axis only
-//	m_graph.SetLineStats(3);
-//	m_graph.SetLeftTitle("Energy");
-//	m_graph.SetBottomTitle("Last Day");
-	m_graph.SetYAxisTicks(10);
-	m_graph.SetYAxisMax(100.0);
-	m_graph.SetYAxisMin(0.0);
-	m_graph.SetYAxisStyle(2);
-
-	m_graph.SetTicks(1); // Only ticks on both axis
-	m_graph.SetTickEvery(5);
-
-	m_graph.SetNumPoints(MAX_ENERGY_HISTORY);
-	m_graph.SetNumSets(1);
-
- //	m_graph.SetAutoInc(1);
-/*	double d = -1.0;
-	CString sTemp;
-	for (int i = 0; i < MAX_ENERGY_HISTORY; i++)
+	// Only configure graph if it was successfully created
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
 	{
-		sTemp.Format("%2.1f", d);
-		d += 0.05;
-		m_graph.SetLabelText(sTemp);
-	}*/
+		m_graph.SetDataReset(9);
+		m_graph.SetGraphType(6);
+		m_graph.SetGraphStyle(4);
+		m_graph.SetBackground(0);
+		m_graph.SetPatternedLines(1);
+		m_graph.SetPatternData(6);
+		m_graph.SetRandomData(0);
+		m_graph.SetLabels(3); // Labels on Y axis only
+		m_graph.SetYAxisTicks(10);
+		m_graph.SetYAxisMax(100.0);
+		m_graph.SetYAxisMin(0.0);
+		m_graph.SetYAxisStyle(2);
+
+		m_graph.SetTicks(1); // Only ticks on both axis
+		m_graph.SetTickEvery(5);
+
+		m_graph.SetNumPoints(MAX_ENERGY_HISTORY);
+		m_graph.SetNumSets(1);
+	}
+
 	Biot* pBiot = m_pEnv->FindBiotByID(m_pEnv->m_selectedId);
 	SetTitle(pBiot, TRUE);
 	SetEnergy(pBiot, TRUE);
 	m_breedView.ShowWindow(SW_HIDE);
-	m_graph.ShowWindow(SW_SHOWNORMAL);
+	
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+	{
+		m_graph.ShowWindow(SW_SHOWNORMAL);
+	}
 }
 
 
@@ -586,28 +613,32 @@ void CMagnifyWnd::SetEnergy(Biot* pBiot, BOOL bDraw)
 	if (!bDraw && (pBiot->m_age & 0x3F) != 0)
 		return;
 
-	m_graph.SetAutoInc(1);
-
+	// Update energy data arrays (always do this for tracking)
 	for (i = 0; i < pBiot->m_statIndex; i++)
 		m_energy[MAX_ENERGY_HISTORY - 1 - i] = pBiot->m_statEnergy[pBiot->m_statIndex - i - 1];
 
 	for (i = pBiot->m_statIndex; i < MAX_ENERGY_HISTORY; i++)
 		m_energy[i - pBiot->m_statIndex] = pBiot->m_statEnergy[i];
 
+	// Only display graph if it was successfully created
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+	{
+		m_graph.SetAutoInc(1);
 
-	for (i = 0; i < MAX_ENERGY_HISTORY; i++)
-		m_graph.SetGraphData(m_energy[i]);
+		for (i = 0; i < MAX_ENERGY_HISTORY; i++)
+			m_graph.SetGraphData(m_energy[i]);
 
-	m_graph.SetAutoInc(1);
-	if (m_energy[MAX_ENERGY_HISTORY - 1] > m_energy[MAX_ENERGY_HISTORY - 2])
-		m_graph.SetColorData(10);	// Green
-	else
-		if (m_energy[MAX_ENERGY_HISTORY - 1] < m_energy[MAX_ENERGY_HISTORY - 2])
-			m_graph.SetColorData(12);	// Red
+		m_graph.SetAutoInc(1);
+		if (m_energy[MAX_ENERGY_HISTORY - 1] > m_energy[MAX_ENERGY_HISTORY - 2])
+			m_graph.SetColorData(10);	// Green
 		else
-			m_graph.SetColorData(14); //Yellow
+			if (m_energy[MAX_ENERGY_HISTORY - 1] < m_energy[MAX_ENERGY_HISTORY - 2])
+				m_graph.SetColorData(12);	// Red
+			else
+				m_graph.SetColorData(14); //Yellow
 
-	m_graph.SetDrawMode(3);
+		m_graph.SetDrawMode(3);
+	}
 }
 
 
@@ -623,7 +654,10 @@ void CMagnifyWnd::OnBreeding()
 	Biot* pBiot = m_pEnv->FindBiotByID(m_pEnv->m_selectedId);
 
 	m_choice = ID_BREEDING;
-	m_graph.ShowWindow(SW_HIDE);
+	
+	// Only hide graph if it was successfully created
+	if (m_bGraphAvailable && m_graph.GetSafeHwnd() != NULL)
+		m_graph.ShowWindow(SW_HIDE);
 
 	SetTitle(pBiot, TRUE);
 	m_breedView.UpdateData(FALSE);

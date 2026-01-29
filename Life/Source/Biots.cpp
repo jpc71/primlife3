@@ -683,59 +683,67 @@ void Biot::EraseAndDraw(int operation)
 			GetRECT(&region);
 		}
 
-		// Get background bitmap
+		// Get background bitmap - fill scratch pad with background color
 		HDC hMemPadDC = env.GetBitPadDC(region.right - region.left, region.bottom - region.top);
 
-		VERIFY(BitBlt(hMemPadDC, 0, 0, region.right - region.left,
-			region.bottom - region.top, env.m_hScreenDC,
-			region.left, region.top, SRCCOPY));
+		// Fill the entire scratch pad with background color to ensure clean erasing
+		RECT fillRect = {0, 0, region.right - region.left, region.bottom - region.top};
+		CDC dcPad;
+		dcPad.Attach(hMemPadDC);
+		dcPad.FillSolidRect(&fillRect, RGB(10, 10, 50));  // Dark blue water background
+		dcPad.Detach();
   
-		if (m_bDrawn)
-		{
-			// Erase
-			hOld = (HBITMAP) SelectObject(env.m_hMemoryDC, m_hBitmap);
-			ASSERT(lastWidth <= m_bitmapWidth && lastHeight <= m_bitmapHeight);
-			VERIFY(BitBlt(hMemPadDC, lastLeft - region.left, lastTop - region.top,
-				lastWidth,
-				lastHeight, env.m_hMemoryDC, 0, 0, DSTERASE));
-			SelectObject(env.m_hMemoryDC, hOld);
-		}
-
+		// Use masking for proper compositing: 
+		// 1. Erase (AND NOT) the black areas of the biot bitmap from the background
+		// 2. OR the biot bitmap on top
 
 		PrepareDraw(operation);
- 
+	 
+		// Proper masking: create a mask and use it for clean compositing
+		// Strategy: 
+		// 1. Copy background to scratch pad
+		// 2. Create mask (white where biot pixels exist, black where background is)
+		// 3. AND NOT mask to clear destination area where biot will be drawn
+		// 4. OR biot bitmap to composite colored pixels onto cleared area
+		
 		hOld = (HBITMAP) SelectObject(env.m_hMemoryDC, m_hBitmap);
 		ASSERT(Width() <= m_bitmapWidth && Height() <= m_bitmapHeight);
-		VERIFY(BitBlt(hMemPadDC, m_left - region.left, m_top - region.top,
-			Width(), Height(), env.m_hMemoryDC, 0, 0, SRCPAINT));
-		SelectObject(env.m_hMemoryDC, hOld);
-
-		VERIFY(BitBlt(env.m_hScreenDC, region.left, region.top,
-			region.right - region.left, region.bottom - region.top, hMemPadDC, 0, 0, SRCCOPY));
-
-		m_bDrawn = TRUE;
-	}
-	else
-	{
-		// Flicker drawing routines
-		PrepareErase(operation);
-
-		if (m_bDrawn)
+		
+		// Create a mask - a simple approach is to use NOTSRCCOPY to invert the bitmap
+		// This gives us: white where biot has pixels (any color including near-black)
+		//               black where background is (pure black)
+		HDC hMaskDC = ::CreateCompatibleDC(env.m_hScreenDC);
+		if (hMaskDC)
 		{
-			hOld = (HBITMAP) SelectObject(env.m_hMemoryDC, m_hBitmap);
-			ASSERT(lastWidth <= m_bitmapWidth && lastHeight <= m_bitmapHeight);
- 			VERIFY(BitBlt(env.m_hScreenDC, lastLeft, lastTop, lastWidth, lastHeight, env.m_hMemoryDC, 0, 0, DSTERASE));
-			SelectObject(env.m_hMemoryDC, hOld);
+			HBITMAP hMaskBitmap = ::CreateCompatibleBitmap(env.m_hScreenDC, Width(), Height());
+			if (hMaskBitmap)
+			{
+				HBITMAP hOldMask = (HBITMAP) ::SelectObject(hMaskDC, hMaskBitmap);
+				
+				// Create mask by inverting the source bitmap
+				// NOTSRCCOPY inverts: black pixels become white, colored pixels become light
+				::BitBlt(hMaskDC, 0, 0, Width(), Height(), env.m_hMemoryDC, 0, 0, NOTSRCCOPY);
+				
+				// Now use mask to composite:
+				// 1. AND the destination with NOT mask to clear where biot will go
+				::BitBlt(hMemPadDC, m_left - region.left, m_top - region.top,
+					Width(), Height(), hMaskDC, 0, 0, SRCAND);
+				
+				// 2. OR the biot bitmap on top
+				::BitBlt(hMemPadDC, m_left - region.left, m_top - region.top,
+					Width(), Height(), env.m_hMemoryDC, 0, 0, SRCPAINT);
+				
+				SelectObject(hMaskDC, hOldMask);
+				DeleteObject(hMaskBitmap);
+			}
+			DeleteDC(hMaskDC);
 		}
-
-		PrepareDraw(operation);
-
-		hOld = (HBITMAP) SelectObject(env.m_hMemoryDC, m_hBitmap);
-		ASSERT(Width() <= m_bitmapWidth && Height() <= m_bitmapHeight);
-		VERIFY(BitBlt(env.m_hScreenDC, m_left, m_top, Width(), Height(), env.m_hMemoryDC, 0, 0, SRCPAINT));
+		
 		SelectObject(env.m_hMemoryDC, hOld);
-
-		m_bDrawn = TRUE;
+		
+		// Copy the result back to screen
+		VERIFY(BitBlt(env.m_hScreenDC, region.left, region.top, region.right - region.left,
+			region.bottom - region.top, hMemPadDC, 0, 0, SRCCOPY));
 	}
 
 	SetErasePosition();
@@ -811,10 +819,14 @@ void Biot::Erase(void)
 	if (m_bDrawn)
 	{
 		m_bDrawn = FALSE;
-		HBITMAP hOld = (HBITMAP) SelectObject(env.m_hMemoryDC, m_hBitmap);
-		ASSERT(Width() <= m_bitmapWidth && Height() <= m_bitmapHeight);
-		VERIFY(BitBlt(env.m_hScreenDC, lastLeft, lastTop, Width(), Height(), env.m_hMemoryDC, 0, 0, DSTERASE));//SRCAND));
-		SelectObject(env.m_hMemoryDC, hOld);
+		// Fill the old biot region with water background color to erase it
+		// This clears the area before the next draw
+		CRect eraseRect(lastLeft, lastTop, lastLeft + Width(), lastTop + Height());
+		VERIFY(env.m_hScreenDC);
+		CDC dc;
+		dc.Attach(env.m_hScreenDC);
+		dc.FillSolidRect(eraseRect, RGB(10, 10, 50));  // Match the water background color
+		dc.Detach();
 	}
 }
 
@@ -2441,7 +2453,8 @@ BYTE Biot::ExtendLine(int nSegment, int nLimb)
 BYTE Biot::RetractLimbType(int nSegment, int nLimbType, int maxRadius)
 {
 	bool bOneLine = false;
-	for (int i = 0; i < trait.GetLines(); i++)
+	int i;
+	for (i = 0; i < trait.GetLines(); i++)
 	{
 		if (nLimbType == trait.GetLineTypeIndex(i))
 		{
@@ -2479,7 +2492,8 @@ BYTE Biot::RetractLimbType(int nSegment, int nLimbType, int maxRadius)
 BYTE Biot::ExtendLimbType(int nSegment, int nLimbType)
 {
 	bool bOneLine = false;
-	for (int i = 0; i < trait.GetLines(); i++)
+	int i;
+	for (i = 0; i < trait.GetLines(); i++)
 	{
 		if (nLimbType == trait.GetLineTypeIndex(i))
 		{
