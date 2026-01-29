@@ -146,11 +146,7 @@ BOOL CPLifeApp::InitInstance()
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
 
-#ifdef _AFXDLL
-	Enable3dControls();			// Call this when using MFC in a shared DLL
-#else
-	Enable3dControlsStatic();	// Call this when linking to MFC statically
-#endif
+	// Enable3dControls deprecated - removed for Windows 11 compatibility
 
  	LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
@@ -286,11 +282,8 @@ void CPLifeApp::ShowSettingsDialog()
 //
 bool AfxIsNT(void)
 {
-	OSVERSIONINFO version;
-	ZeroMemory(&version, sizeof(OSVERSIONINFO));
-	version.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&version);
-	return (version.dwPlatformId == VER_PLATFORM_WIN32_NT);
+	// Windows 11 is always NT-based, so always return true
+	return true;
 }
 
 

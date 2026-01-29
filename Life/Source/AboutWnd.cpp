@@ -188,7 +188,7 @@ CSplashWnd::Create(CString sOwner, CWnd* pParentWnd /*= NULL*/)
 	// Note that we don't need to realize the palette
 	// since we won't actually be doing any drawing.
 	CClientDC dc(pParentWnd);
-	CPalette* old_palette_ptr;
+	CPalette* old_palette_ptr = NULL;
 	CPalette* app_palette_ptr = CAppPalette::GetAppPalette();
 	if (app_palette_ptr != NULL)
 	{
@@ -210,7 +210,7 @@ CSplashWnd::Create(CString sOwner, CWnd* pParentWnd /*= NULL*/)
 	{
 		// TODO: Get this text from the VERSIONINFO resource.
 		m_text[0] =
-			"Copyright © 1996-98 Jason Spofford. "
+			"Copyright ï¿½ 1996-98 Jason Spofford. "
 			"All rights reserved.";
 
 //		m_text2 = "This world is registered to:\r\nJason Joseph Spofford Twofordorwe\r\nSite License";
@@ -363,7 +363,7 @@ void CSplashWnd::OnPaint()
 		return;
 
 	// Select the color palette in the foreground.
-	CPalette* old_palette_ptr;
+	CPalette* old_palette_ptr = NULL;
 	CPalette* app_palette_ptr = CAppPalette::GetAppPalette();
 	if (app_palette_ptr != NULL)
 	{
@@ -414,7 +414,7 @@ void CSplashWnd::OnCancelMode()
 }
 
 
-void CSplashWnd::OnTimer(UINT /*nIDEvent*/)
+void CSplashWnd::OnTimer(UINT_PTR /*nIDEvent*/)
 {
 	// Destroy the splash screen window.
 	Hide();

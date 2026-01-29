@@ -282,7 +282,7 @@ void CEnvStats::Sample(Environment& env)
 
 	m_totalEnvArea = m_freeEnvArea = env.Area();
 
-	for (j = 0; j < m_population; j++)
+	for (int j = 0; j < m_population; j++)
 	{
 		Biot* pBiot = env.m_biotList[j];
 
@@ -1614,7 +1614,11 @@ void Environment::SaveBiot(Biot* pBiot)
 	if (dlg.DoModal() == IDOK)
 	{
 		try {
+#ifdef USE_ZLIB
 			CCompressFile file(dlg.GetPathName(), CFile::modeCreate | CFile::shareExclusive | CFile::modeWrite);
+#else
+			CFile file(dlg.GetPathName(), CFile::modeCreate | CFile::shareExclusive | CFile::modeWrite);
+#endif
 			CArchive ar(&file, CArchive::store);
 		    pBiot->Serialize(ar);
 			ar.Close();
@@ -1667,7 +1671,11 @@ void Environment::LoadBiot(int x, int y)
 	if(dlg.DoModal() == IDOK)
 	{
 		try {
+#ifdef USE_ZLIB
 			CUncompressFile file(dlg.GetPathName(), CFile::modeRead | CFile::shareDenyWrite);
+#else
+			CFile file(dlg.GetPathName(), CFile::modeRead | CFile::shareDenyWrite);
+#endif
 
 			CArchive ar(&file, CArchive::load);
 

@@ -495,7 +495,7 @@ void CMainFrame::UpdateStatusBar()
 // OnTimer
 //
 //
-void CMainFrame::OnTimer(UINT nIDEvent) 
+void CMainFrame::OnTimer(UINT_PTR nIDEvent) 
 {
 	if (m_bBlocked)
 		return;
@@ -1071,7 +1071,7 @@ void CMainFrame::OnUpdateViewBar(CCmdUI* pCmdUI)
 }
 
 
-void CMainFrame::OnActivateApp(BOOL bActive, HTASK hTask) 
+void CMainFrame::OnActivateApp(BOOL bActive, DWORD hTask) 
 {
 	CFrameWnd::OnActivateApp(bActive, hTask);
 	

@@ -226,7 +226,8 @@ void GeneLimb::Serialize(CArchive& ar)
 
 int GeneLimb::GetSegmentsVisible()
 {
-	for (int i = 0, j = 0; i < MAX_SEGMENTS; i++)
+	int i, j = 0;
+	for (i = 0; i < MAX_SEGMENTS; i++)
 		if (m_segment[i].IsVisible())
 			j++;
 
@@ -264,7 +265,8 @@ const int GeneTrait::mirrorSix[MAX_SYMMETRY]   = { 0, 120,  0,  120, 240, 240,  
 
 void GeneTrait::Serialize(CArchive& ar)
 {
-	for (int i = 0; i < MAX_LIMB_TYPES; i++)
+	int i;
+	for (i = 0; i < MAX_LIMB_TYPES; i++)
 			m_geneLine[i].Serialize(ar);
 
 	if (ar.IsLoading())

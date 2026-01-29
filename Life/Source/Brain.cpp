@@ -1065,7 +1065,8 @@ void CommandRetractLimb::Initialize(CommandLimbStore& store)
 	int nRealLimbType = store.m_pBiot->trait.GetLineTypeIndex(m_nLimb);
 
 	// Walk all the segments and determine the max segment 
-	for (int i = MAX_SEGMENTS - 1; i >= 0; i--)
+	int i;
+	for (i = MAX_SEGMENTS - 1; i >= 0; i--)
 	{
 		GeneSegment& segment = store.m_pBiot->trait.GetSegmentType(nRealLimbType, i);
 
@@ -1133,7 +1134,8 @@ void CommandRetractLimbType::Initialize(CommandLimbStore& store)
 		return;
 
 	// Walk all the segments and determine the max segment 
-	for (int i = MAX_SEGMENTS - 1; i >= 0; i--)
+	int i;
+	for (i = MAX_SEGMENTS - 1; i >= 0; i--)
 	{
 		GeneSegment& segment = store.m_pBiot->trait.GetSegmentType(m_nLimbType, i);
 

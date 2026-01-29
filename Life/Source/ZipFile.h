@@ -27,10 +27,28 @@
 //#endif
 
 #include <afx.h>
+
+// zlib is not available - compression disabled
+// To enable compression, install zlib via vcpkg:
+//   vcpkg install zlib:x64-windows
+//   vcpkg integrate install
+// #define USE_ZLIB 1
+
+#ifdef USE_ZLIB
 #define STDC
 #include "zlib.h"
+#else
+// Dummy definitions when zlib is not available
+#define Z_DEFLATED 8
+#define Z_OK 0
+#define Z_STREAM_END 1
+#define Z_NEED_DICT 2
+#define Z_DEFAULT_COMPRESSION (-1)
+#endif
 
 #define Z_BUFSIZE 4096
+
+#ifdef USE_ZLIB
 
 //=============================================================================
 //=============================================================================
@@ -173,5 +191,6 @@ class CUncompressFile : public CZBaseFile
 #endif
 };
 
+#endif // USE_ZLIB
 
-#endif
+#endif // _ZipFile_h_
