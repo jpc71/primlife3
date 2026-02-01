@@ -152,7 +152,8 @@
 #define IDC_BOTTOM_BOUNCED              1083
 #define IDC_COMBO1                      1083
 #define IDC_VIEW_SERVERS                1084
-#define OPW_TAB                         1085
+#define IDC_REGISTRATION_REQUIRED       1085
+#define OPW_TAB                         1086
 #define DLG_SCRNSAVECONFIGURE           2003
 #define DLG_ABOUTHELP1                  2004
 #define DLG_SCRNSAVECONFIGURE1          2005
@@ -201,7 +202,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        176
 #define _APS_NEXT_COMMAND_VALUE         32810
-#define _APS_NEXT_CONTROL_VALUE         1086
+#define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           109
 #endif
 #endif

@@ -1,5 +1,13 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "&": true
+        "&": true,
+        "/^cmd /c '\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\VC\\\\Auxiliary\\\\Build\\\\vcvars64\\.bat\" && msbuild Life\\\\PrimordialLife\\.sln /p:Configuration=Release /p:Platform=x64'$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cmd /c '\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\VC\\\\Auxiliary\\\\Build\\\\vcvars64\\.bat\" && cd Life && msbuild PrimordialLife\\.sln /p:Configuration=Release /p:Platform=x64 /m'$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

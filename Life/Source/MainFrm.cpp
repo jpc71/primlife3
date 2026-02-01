@@ -620,15 +620,15 @@ void CMainFrame::OnDestroy()
 //
 BOOL CMainFrame::CheckActions()
 {
-	m_actions++;
-	if (!AfxKeyRegistry().IsGoodKey())
-	{
-		if (m_actions > 5)
-		{
-			AfxMessageBox("In the unregisted version, you may only use the menu a few times.");
-	        return FALSE;
-		}
-	}
+	//m_actions++;
+	//if (!AfxKeyRegistry().IsGoodKey())
+	//{
+	//	if (m_actions > 5)
+	//	{
+	//		AfxMessageBox("In the unregisted version, you may only use the menu a few times.");
+	//        return FALSE;
+	//	}
+	//}
 	return TRUE;
 }
 

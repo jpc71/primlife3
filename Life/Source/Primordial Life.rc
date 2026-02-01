@@ -716,7 +716,7 @@ BEGIN
             VALUE "FileDescription", "Primordial Life\0"
             VALUE "FileVersion", "4, 0, 0, 0\0"
             VALUE "InternalName", "PRIMORDIAL LIFE\0"
-            VALUE "LegalCopyright", "Copyright © 1996-1998\0"
+            VALUE "LegalCopyright", "Copyright ï¿½ 1996-1998\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "PRIMLIFE.EXE\0"
             VALUE "PrivateBuild", "\0"
